@@ -36,12 +36,12 @@ class Robot:
 
 
 	def MoveTo(self, x, y, z):
-		p = np.array([[x, y, z]]).T
-		p = self.R_world_robot@p
+		pos = np.array([[x, y, z]]).T
+		pos = self.R_world_robot@pos
 
-		x = p[0, 0]
-		y = p[1, 0]
-		z = p[2, 0]
+		x = pos[0, 0]
+		y = pos[1, 0]
+		z = pos[2, 0]
 
 		t1, t2, t3 = self.kine_model.IK(x, y, z)
 		# t1 = 0
