@@ -7,30 +7,49 @@ class Kinematics:
 		self.l2 = 1
 		self.l3 = 1
 
+	def FK_(self, theta1, theta2, theta3):
+		x = 0
+		y = 0
+		z = 0
+
+		D = np.sqrt(self.l2**2 + self.l3**2 - 2*self.l2*self.l3*np.cos(theta3))
+		r = np.sqrt(self.l1**2 + D**2)
+
+		# print("R:"r)
+
+
+		alpha = np.arccos(self.l1/r)
+		beta = alpha - theta1
+
+		# print(f"R: {r}, D: {D}, alpha: {alpha}, beta: {beta}")
+
+
+		phi = np.arccos((self.l3**2 - D**2 - self.l2**2)/(2*self.l2*D))
+		gamma = theta2 + phi
+
+		x = r*np.cos(beta)*np.sin(gamma)
+		y = r*np.cos(beta)
+		# y = r*np.cos(beta)*np.cos(gamma)
+		z = r*np.sin(beta)*np.cos(gamma)
+
+
+
+		return x, y, z
+
 	def FK(self, theta1, theta2, theta3):
-		c1c2c3 = np.cos(theta1)*np.cos(theta2)*np.cos(theta3)
-		c1s2s3 = np.cos(theta1)*np.sin(theta2)*np.sin(theta3)
-		s1c2c3 = np.sin(theta1)*np.cos(theta2)*np.cos(theta3)
-		s1s2s3 = np.sin(theta1)*np.sin(theta2)*np.sin(theta3)
+		q = [theta1, theta2, theta3]
+		# X: 1.0*c2*l3*s3 + 1.0*c3*l3*s2 + 1.0*l2*s2
+		# Y: -1.0*c1*l1 + 1.0*s1*(c2*c3*l3 + c2*l2 - 1.0*l3*s2*s3)
+		# Z: -1.0*c1*(c2*c3*l3 + c2*l2 - 1.0*l3*s2*s3) - 1.0*l1*s1
 
-		c1c2 = np.cos(theta1)*np.cos(theta2)
-		s1c2 = np.sin(theta1)*np.cos(theta2)
-		s2c3 = np.sin(theta2)*np.cos(theta3)
-		c2s3 = np.cos(theta2)*np.sin(theta3)
+		x = 0
+		y = 0
+		z = 0
 
+		x = self.l3*trig_solve('cs', q[1:]) + self.l3*trig_solve('sc', q[1:]) + self.l2*trig_solve('s', [q[1]]) 
+		y = - self.l1*trig_solve('c', [q[0]]) + trig_solve('s', [q[0]])*(self.l3*trig_solve('cc', q[1:]) + self.l2*trig_solve('c', [q[1]]) - self.l3*trig_solve('ss', q[1:]))
+		z = - self.l1*trig_solve('s', [q[0]]) - trig_solve('c', [q[0]])*(self.l3*trig_solve('cc', q[1:]) + self.l2*trig_solve('c', [q[1]]) - self.l3*trig_solve('ss', q[1:]))
 
-
-		x = self.l3*(c1c2c3 - c1s2s3) + self.l2*c1c2 + self.l1*np.sin(theta1)
-		y = self.l3*(s1c2c3 - s1s2s3) + self.l2*s1c2 - self.l1*np.cos(theta1)
-		z = self.l3*(s2c3 - c2s3) + self.l2*np.sin(theta2)
-
-		R = get_rot_mat(x = 0, y = np.pi/2, z = np.pi)
-		p = np.array([[x, y, z]])
-		p = R@p.T
-
-		x = p[0,0]
-		y = p[1,0]
-		z = p[2,0]
 
 		return x, y, z
 

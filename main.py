@@ -5,6 +5,7 @@ import time
 
 
 from Robot import Robot
+from utils import *
 
 
 physicsClient = p.connect(p.GUI)
@@ -29,8 +30,13 @@ x = x_base
 y = y_base
 z = z_base
 
+p_body = np.array([[x, y, z]])
+R = get_rot_mat(0, -np.pi/2, 0)
+
 pos = 0
 for i in range(10000):
+	p_leg = R@p_body.T
+	
 	robot.MoveTo(x, y, z)
 
 	p.stepSimulation()
@@ -39,4 +45,4 @@ for i in range(10000):
 	# x = x_base + 0.5*np.sin(pos)
 	# y = y_base + 0.5*np.sin(pos)
 	# z = z_base + 0.5*np.sin(pos)
-	pos += 0.01
+	# pos += 0.01

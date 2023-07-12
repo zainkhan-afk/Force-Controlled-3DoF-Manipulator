@@ -2,6 +2,7 @@ import pybullet as p
 import numpy as np
 
 from Kinematics import Kinematics
+from utils import *
 
 class Robot:
 	def __init__(self, urdf_path, start_pos, start_orientation):
@@ -31,8 +32,17 @@ class Robot:
 
 		self.joint_indices = self.joint_dict.keys()
 
+		self.R_world_robot = get_rot_mat(0, -np.pi/2, 0)
+
 
 	def MoveTo(self, x, y, z):
+		p = np.array([[x, y, z]]).T
+		p = self.R_world_robot@p
+
+		x = p[0, 0]
+		y = p[1, 0]
+		z = p[2, 0]
+
 		t1, t2, t3 = self.kine_model.IK(x, y, z)
 		# t1 = 0
 		# t2 = 0
@@ -69,7 +79,7 @@ class Robot:
 		pos_str = f"{round(x, 2), round(y, 2), round(z, 2)}"
 		pos_FK_str = f"{round(x_, 2), round(y_, 2), round(z_, 2)}"
 
-		print(f"Requested Pos: {pos_str} - FK Pos: {pos_FK_str} - Desired {desired_str}")
+		print(f"Requested Pos: {pos_str} - FK Pos: {pos_FK_str} - Desired {desired_str} - R {np.sqrt(x**2 + y**2 + z**2)}")
 		# print(f"desired: {desired_str} - current: {current_str} - Control: {val_str} - Error: {error_str}")
 
 		p.setJointMotorControlArray(self.robot, self.joint_indices, p.POSITION_CONTROL, targetPositions = val)
