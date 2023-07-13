@@ -37,18 +37,24 @@ class Kinematics:
 		return x, y, z
 
 	def FK(self, theta1, theta2, theta3):
-		q = [theta1, theta2, theta3]
-		# X: 1.0*c2*l3*s3 + 1.0*c3*l3*s2 + 1.0*l2*s2
-		# Y: -1.0*c1*l1 + 1.0*s1*(c2*c3*l3 + c2*l2 - 1.0*l3*s2*s3)
-		# Z: -1.0*c1*(c2*c3*l3 + c2*l2 - 1.0*l3*s2*s3) - 1.0*l1*s1
+		# X: c1*(c2*c3*l3 + c2*l2 - 1.0*l3*s2*s3) - 1.0*l1*s1
+		# Y: 1.0*c1*l1 + s1*(c2*c3*l3 + c2*l2 - 1.0*l3*s2*s3)
+		# Z: -1.0*c2*l3*s3 - 1.0*c3*l3*s2 - 1.0*l2*s2
 
+		q = [theta1, theta2, theta3]
 		x = 0
 		y = 0
 		z = 0
 
-		x = self.l3*trig_solve('cs', q[1:]) + self.l3*trig_solve('sc', q[1:]) + self.l2*trig_solve('s', [q[1]]) 
-		y = - self.l1*trig_solve('c', [q[0]]) + trig_solve('s', [q[0]])*(self.l3*trig_solve('cc', q[1:]) + self.l2*trig_solve('c', [q[1]]) - self.l3*trig_solve('ss', q[1:]))
-		z = - self.l1*trig_solve('s', [q[0]]) - trig_solve('c', [q[0]])*(self.l3*trig_solve('cc', q[1:]) + self.l2*trig_solve('c', [q[1]]) - self.l3*trig_solve('ss', q[1:]))
+		# -90 in DH and -90 in Robot
+		x = - self.l1*trig_solve('s', [q[0]]) + trig_solve('c', [q[0]])*(self.l3*trig_solve('cc', q[1:]) + self.l2*trig_solve('c', [q[1]]) - self.l3*trig_solve('ss', q[1:]))
+		y =   self.l1*trig_solve('c', [q[0]]) + trig_solve('s', [q[0]])*(self.l3*trig_solve('cc', q[1:]) + self.l2*trig_solve('c', [q[1]]) - self.l3*trig_solve('ss', q[1:]))
+		z = - self.l3*trig_solve('cs', q[1:]) - self.l3*trig_solve('sc', q[1:]) - self.l2*trig_solve('s', [q[1]]) 
+
+		# 90 in DH and -90 in Robot
+		# x =   self.l1*trig_solve('s', [q[0]]) + trig_solve('c', [q[0]])*(self.l3*trig_solve('cc', q[1:]) + self.l2*trig_solve('c', [q[1]]) - self.l3*trig_solve('ss', q[1:]))
+		# y = - self.l1*trig_solve('c', [q[0]]) + trig_solve('s', [q[0]])*(self.l3*trig_solve('cc', q[1:]) + self.l2*trig_solve('c', [q[1]]) - self.l3*trig_solve('ss', q[1:]))
+		# z =  self.l3*trig_solve('cs', q[1:]) + self.l3*trig_solve('sc', q[1:]) + self.l2*trig_solve('s', [q[1]]) 
 
 
 		return x, y, z

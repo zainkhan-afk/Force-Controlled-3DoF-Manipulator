@@ -21,7 +21,7 @@ p.setRealTimeSimulation(0)  # we want to be faster than real time :
 robot = Robot("Manipulator_3DoF.urdf", [0, 0, 0.1], [0, 0, 0])
 
 
-x_base = 0
+x_base = 1.5
 y_base = robot.kine_model.l1
 # y_base = 0
 z_base = -1
@@ -30,13 +30,8 @@ x = x_base
 y = y_base
 z = z_base
 
-p_body = np.array([[x, y, z]])
-R = get_rot_mat(0, -np.pi/2, 0)
-
 pos = 0
 for i in range(10000):
-	p_leg = R@p_body.T
-	
 	robot.MoveTo(x, y, z)
 
 	p.stepSimulation()
