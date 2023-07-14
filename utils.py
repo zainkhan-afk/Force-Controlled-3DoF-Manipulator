@@ -42,3 +42,10 @@ def trig_solve(chain, angle_list):
 		i += 1
 
 	return product
+
+
+def Rad2Deg(rad):
+	return rad/np.pi*180
+
+def Deg2Rad(deg):
+	return deg/180*np.pi

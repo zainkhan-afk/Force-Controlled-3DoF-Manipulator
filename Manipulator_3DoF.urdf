@@ -62,7 +62,7 @@
   <parent link="base_link"/>
   <child link="arm1"/>
   <origin xyz="0 0.3 0" rpy="0 0 0"/>
-  <axis xyz="0 -1 0"/>
+  <axis xyz="0 1 0"/>
 </joint>
 
 <link name="arm1">
@@ -98,7 +98,7 @@
   <parent link="arm1"/>
   <child link="arm2"/>
   <origin xyz="0 0 -1" rpy="0 0 0"/>
-  <axis xyz="0 -1 0"/>
+  <axis xyz="0 1 0"/>
 </joint>
 
 <link name="arm2">
