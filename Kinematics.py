@@ -23,12 +23,6 @@ class Kinematics:
 		y =   self.l1*trig_solve('c', [q[0]]) + trig_solve('s', [q[0]])*(self.l3*trig_solve('cc', q[1:]) + self.l2*trig_solve('c', [q[1]]) - self.l3*trig_solve('ss', q[1:]))
 		z = - self.l3*trig_solve('cs', q[1:]) - self.l3*trig_solve('sc', q[1:]) - self.l2*trig_solve('s', [q[1]]) 
 
-		# 90 in DH and -90 in Robot
-		# x =   self.l1*trig_solve('s', [q[0]]) + trig_solve('c', [q[0]])*(self.l3*trig_solve('cc', q[1:]) + self.l2*trig_solve('c', [q[1]]) - self.l3*trig_solve('ss', q[1:]))
-		# y = - self.l1*trig_solve('c', [q[0]]) + trig_solve('s', [q[0]])*(self.l3*trig_solve('cc', q[1:]) + self.l2*trig_solve('c', [q[1]]) - self.l3*trig_solve('ss', q[1:]))
-		# z =  self.l3*trig_solve('cs', q[1:]) + self.l3*trig_solve('sc', q[1:]) + self.l2*trig_solve('s', [q[1]]) 
-
-
 		return x, y, z
 
 

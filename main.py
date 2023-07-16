@@ -34,12 +34,22 @@ pos = 0
 
 R = get_rot_mat(x = 0, y = -np.pi/2, z = 0)
 for i in range(10000):
-	robot.MoveTo(x, y, z)
+	# robot.MoveTo(x, y, z)
+
+	state = robot.GetCurrentState()
+	J_robotjointbase, J_robotframe = robot.GetJabobian(state.GetPosition())
+
+	q_dot = state.GetTorque()[:, np.newaxis]
+
+	v_dot = J_robotjointbase@q_dot
+	v_dot = robot.R_robotframe_robotjointbase.T@v_dot
+
+	print(q_dot.T)
 
 	p.stepSimulation()
 	time.sleep(1./240.)
 
-	# x = x_base + 0.5*np.sin(pos)
+	x = x_base + 0.5*np.sin(pos)
 	# y = y_base + 0.5*np.sin(pos)
-	z = z_base + 0.5*np.sin(pos)
+	# z = z_base + 0.5*np.sin(pos)
 	pos += 0.01

@@ -60,7 +60,7 @@ l1, l2, l3 = var('l1, l2, l3')
 
 T_r = GetRotMat(r = 0, p = 0, y = 0)
 
-T_0_1 = GetTransform(d = 0, a = 0,  alpha = np.pi/2, i = 1)
+T_0_1 = GetTransform(d = 0, a = 0,  alpha = -np.pi/2, i = 1)
 T_1_2 = GetTransform(d = 0, a = l2, alpha = 0, i = 2)
 T_2_3 = GetTransform(d = l1, a = l3, alpha = 0, i = 3)
 

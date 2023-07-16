@@ -3,6 +3,7 @@ import numpy as np
 
 from Kinematics import Kinematics
 from utils import *
+from State import State
 
 class Robot:
 	def __init__(self, urdf_path, start_pos, start_orientation):
@@ -32,12 +33,12 @@ class Robot:
 
 		self.joint_indices = self.joint_dict.keys()
 
-		self.R_world_robot = get_rot_mat(0, -np.pi/2, 0)
+		self.R_robotframe_robotjointbase = get_rot_mat(0, -np.pi/2, 0)
 
 
 	def MoveTo(self, x, y, z):
 		pos = np.array([[x, y, z]]).T
-		# pos = self.R_world_robot@pos
+		# pos = self.R_robotframe_robotjointbase@pos
 
 		x = pos[0, 0]
 		y = pos[1, 0]
@@ -47,7 +48,7 @@ class Robot:
 		x_, y_, z_ = self.kine_model.FK(t1, t2, t3)
 
 		pos_ = np.array([[x_, y_, z_]]).T
-		pos_ = self.R_world_robot.T@pos_
+		pos_ = self.R_robotframe_robotjointbase.T@pos_
 
 		x_ = pos_[0, 0]
 		y_ = pos_[1, 0]
@@ -63,20 +64,20 @@ class Robot:
 		pos_FK_str = f"{round(x_, 2), round(y_, 2), round(z_, 2)}"
 		desired_pos_str = f"{round(t1*180/np.pi, 2), round(t2*180/np.pi, 2), round(t3*180/np.pi, 2)}"
 
-		print(f"Requested Pos: {pos_str} - FK Pos: {pos_FK_str} - Desired Joint Pos {desired_pos_str}")
+		# print(f"Requested Pos: {pos_str} - FK Pos: {pos_FK_str} - Desired Joint Pos {desired_pos_str}")
 		
 
 	def MoveJoints(self, desired):
-		current = self.GetCurrentJointPosition()
+		current_state = self.GetCurrentState()
 
-		error = desired - current
+		error = desired - current_state.GetPosition()
 		
 		# diff_error = self.joint_position_prev_errors - error
 		diff_error = error - self.joint_position_prev_errors 
 		
 		self.joint_position_errors_sum += error
 
-		val = current + self.P*error + self.D*diff_error + self.I*self.joint_position_errors_sum
+		val = current_state.GetPosition() + self.P*error + self.D*diff_error + self.I*self.joint_position_errors_sum
 
 		# desired_str = f"{round(desired[0], 2), round(desired[1], 2), round(desired[1], 2)}"
 		# current_str = f"{round(current[0], 2), round(current[1], 2), round(current[1], 2)}"
@@ -91,13 +92,45 @@ class Robot:
 		self.joint_position_prev_errors = error.copy()
 
 
-	def GetCurrentJointPosition(self):
+	def GetCurrentState(self):
 		joint_states = p.getJointStates(self.robot, self.joint_indices)
 
 		current = []
 		for val in joint_states:
-			current.append(val[0])
+			current += [val[0], val[1], val[-1]]
 
 		current = np.array(current)
 
-		return current
+		current_state = State(current)
+
+		return current_state
+
+	def GetJabobian(self, q):
+		# x = - l1*trig_solve('s', [q[0]]) + trig_solve('c', [q[0]])*(l3*trig_solve('cc', q[1:]) + l2*trig_solve('c', [q[1]]) - l3*trig_solve('ss', q[1:]))
+		# y =   l1*trig_solve('c', [q[0]]) + trig_solve('s', [q[0]])*(l3*trig_solve('cc', q[1:]) + l2*trig_solve('c', [q[1]]) - l3*trig_solve('ss', q[1:]))
+		# z = - l3*trig_solve('cs', q[1:]) - l3*trig_solve('sc', q[1:]) - l2*trig_solve('s', [q[1]]) 
+
+		# t1, t2, t3 = q
+		l1, l2, l3 = self.kine_model.l1, self.kine_model.l2, self.kine_model.l3
+
+		dx_dt1 = - l1*trig_solve('c', [q[0]]) - trig_solve('s', [q[0]])*(l3*trig_solve('cc', q[1:]) + l2*trig_solve('c', [q[1]]) - l3*trig_solve('ss', q[1:]))
+		dx_dt2 = trig_solve('c', [q[0]])*(-l3*trig_solve('sc', q[1:]) - l2*trig_solve('s', [q[1]]) - l3*trig_solve('cs', q[1:]))
+		dx_dt3 = trig_solve('c', [q[0]])*(-l3*trig_solve('cs', q[1:]) - l3*trig_solve('sc', q[1:]))
+
+		dy_dt1 = - l1*trig_solve('s', [q[0]]) + trig_solve('c', [q[0]])*(l3*trig_solve('cc', q[1:]) + l2*trig_solve('c', [q[1]]) - l3*trig_solve('ss', q[1:]))
+		dy_dt2 = trig_solve('s', [q[0]])*(-l3*trig_solve('sc', q[1:]) - l2*trig_solve('s', [q[1]]) - l3*trig_solve('cs', q[1:]))
+		dy_dt3 = trig_solve('s', [q[0]])*(-l3*trig_solve('cs', q[1:]) - l3*trig_solve('sc', q[1:]))
+
+		dz_dt1 = 0
+		dz_dt2 = l3*trig_solve('ss', q[1:]) - l3*trig_solve('cc', q[1:]) - l2*trig_solve('c', [q[1]])
+		dz_dt3 = - l3*trig_solve('cc', q[1:]) + l3*trig_solve('ss', q[1:])
+
+		J_robotjointbase = np.array([
+						[dx_dt1, dx_dt2, dx_dt3],
+						[dy_dt1, dy_dt2, dy_dt3],
+						[dz_dt1, dz_dt2, dz_dt3]
+					])
+
+		J_robotframe = self.R_robotframe_robotjointbase.T@J_robotjointbase
+
+		return J_robotjointbase, J_robotframe
