@@ -7,34 +7,6 @@ class Kinematics:
 		self.l2 = 1
 		self.l3 = 1
 
-	def FK_(self, theta1, theta2, theta3):
-		x = 0
-		y = 0
-		z = 0
-
-		D = np.sqrt(self.l2**2 + self.l3**2 - 2*self.l2*self.l3*np.cos(theta3))
-		r = np.sqrt(self.l1**2 + D**2)
-
-		# print("R:"r)
-
-
-		alpha = np.arccos(self.l1/r)
-		beta = alpha - theta1
-
-		# print(f"R: {r}, D: {D}, alpha: {alpha}, beta: {beta}")
-
-
-		phi = np.arccos((self.l3**2 - D**2 - self.l2**2)/(2*self.l2*D))
-		gamma = theta2 + phi
-
-		x = r*np.cos(beta)*np.sin(gamma)
-		y = r*np.cos(beta)
-		# y = r*np.cos(beta)*np.cos(gamma)
-		z = r*np.sin(beta)*np.cos(gamma)
-
-
-
-		return x, y, z
 
 	def FK(self, theta1, theta2, theta3):
 		# X: c1*(c2*c3*l3 + c2*l2 - 1.0*l3*s2*s3) - 1.0*l1*s1
@@ -59,33 +31,6 @@ class Kinematics:
 
 		return x, y, z
 
-	def IK0(self, x, y, z):
-		R = np.sqrt(z**2 + y**2)
-
-		alpha = np.arccos(abs(y)/R)
-		beta  = np.arccos(self.l1/R)
-
-		if y>=0:
-			theta1 = alpha - beta
-		else:
-			theta1 = np.pi - alpha - beta
-
-		x_ = x
-		z_ = -np.sqrt(z**2 + y**2 - self.l1**2)
-
-
-		temp = (x_**2 + z_**2 - self.l2**2 - self.l3**2)/(2*self.l2*self.l3)
-
-		if temp>1:
-			temp = 1
-		if temp<-1:
-			temp = -1
-
-		theta3 =   np.arccos(temp)
-		theta2 =   (np.arctan2(z_, x_) - np.arctan2(self.l3*np.sin(theta3),(self.l2 + self.l3*np.cos(theta3))))
-
-		return theta1, theta2, theta3
-
 
 	def IK(self, x, y, z):
 		R = np.sqrt(z**2 + y**2)
@@ -94,9 +39,6 @@ class Kinematics:
 		alpha  = np.arccos(self.l1/R)
 
 		theta1 = alpha - beta
-		# if y>=0:
-		# else:
-		# 	theta1 = np.pi - alpha - beta
 
 		R_x = get_rot_mat(-theta1, 0, 0)
 		R_yz = get_rot_mat(0, -np.pi/2, np.pi)
@@ -107,9 +49,6 @@ class Kinematics:
 		x_ = p[0, 0]
 		y_ = p[1, 0] + self.l1
 		z_ = p[2, 0]
-
-		# x_ = x
-		# z_ = -np.sqrt(z**2 + y**2 - self.l1**2)
 
 
 		temp = (x_**2 + z_**2 - self.l2**2 - self.l3**2)/(2*self.l2*self.l3)
