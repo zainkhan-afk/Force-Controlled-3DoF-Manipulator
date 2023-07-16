@@ -21,7 +21,7 @@ p.setRealTimeSimulation(0)  # we want to be faster than real time :
 robot = Robot("Manipulator_3DoF.urdf", [0, 0, 0.1], [0, 0, 0])
 
 
-x_base = 1.5
+x_base = 0
 y_base = robot.kine_model.l1
 # y_base = 0
 z_base = -1
@@ -53,5 +53,5 @@ for i in range(10000):
 
 	# x = x_base + 0.5*np.sin(pos)
 	# y = y_base + 0.5*np.sin(pos)
-	# z = z_base + 0.5*np.sin(pos)
-	pos += 0.001
+	z = z_base + 0.5*np.sin(pos)
+	pos += 0.01

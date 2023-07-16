@@ -37,7 +37,7 @@ class Robot:
 
 	def MoveTo(self, x, y, z):
 		pos = np.array([[x, y, z]]).T
-		pos = self.R_world_robot@pos
+		# pos = self.R_world_robot@pos
 
 		x = pos[0, 0]
 		y = pos[1, 0]
@@ -45,6 +45,13 @@ class Robot:
 
 		t1, t2, t3 = self.kine_model.IK(x, y, z)
 		x_, y_, z_ = self.kine_model.FK(t1, t2, t3)
+
+		pos_ = np.array([[x_, y_, z_]]).T
+		pos_ = self.R_world_robot.T@pos_
+
+		x_ = pos_[0, 0]
+		y_ = pos_[1, 0]
+		z_ = pos_[2, 0]
 
 
 		desired = [t1, t2, t3]
@@ -54,8 +61,9 @@ class Robot:
 		
 		pos_str = f"{round(x, 2), round(y, 2), round(z, 2)}"
 		pos_FK_str = f"{round(x_, 2), round(y_, 2), round(z_, 2)}"
+		desired_pos_str = f"{round(t1*180/np.pi, 2), round(t2*180/np.pi, 2), round(t3*180/np.pi, 2)}"
 
-		print(f"Requested Pos: {pos_str} - FK Pos: {pos_FK_str} - R {np.sqrt(x**2 + y**2 + z**2)}")
+		print(f"Requested Pos: {pos_str} - FK Pos: {pos_FK_str} - Desired Joint Pos {desired_pos_str}")
 		
 
 	def MoveJoints(self, desired):

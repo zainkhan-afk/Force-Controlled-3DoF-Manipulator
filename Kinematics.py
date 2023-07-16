@@ -90,18 +90,19 @@ class Kinematics:
 	def IK(self, x, y, z):
 		R = np.sqrt(z**2 + y**2)
 
-		alpha = np.arccos(abs(y)/R)
-		beta  = np.arccos(self.l1/R)
+		beta = np.arccos(y/R)
+		alpha  = np.arccos(self.l1/R)
 
-		if y>=0:
-			theta1 = alpha - beta
-		else:
-			theta1 = np.pi - alpha - beta
+		theta1 = alpha - beta
+		# if y>=0:
+		# else:
+		# 	theta1 = np.pi - alpha - beta
 
-		R = get_rot_mat(theta1, 0, 0)
+		R_x = get_rot_mat(-theta1, 0, 0)
+		R_yz = get_rot_mat(0, -np.pi/2, np.pi)
 
 		p = np.array([[x, y, z]]).T
-		p = R@p
+		p = R_yz@(R_x@p)
 
 		x_ = p[0, 0]
 		y_ = p[1, 0] + self.l1
