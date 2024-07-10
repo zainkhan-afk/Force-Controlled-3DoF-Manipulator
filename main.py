@@ -32,24 +32,33 @@ z = z_base
 
 pos = 0
 
-R = get_rot_mat(x = 0, y = -np.pi/2, z = 0)
-robot.MoveTo(x, y, z)
+target_F = np.array([[0, 10, 0]]).T
+
+# R = get_rot_mat(x = 0, y = -np.pi/2, z = 0)
+# robot.MoveTo(x, y, z)
 for i in range(10000):
 	state = robot.GetCurrentState()
 	J_robotjointbase, J_robotframe = robot.GetJabobian(state.GetPosition())
 
-	if np.linalg.det(J_robotjointbase) != 0:
-		J_robotjointbase_inv = np.linalg.inv(J_robotjointbase)
+	# if np.linalg.det(J_robotjointbase) != 0:
+	# J_robotjointbase_inv = np.linalg.inv(J_robotjointbase.T)
 
-		torque = state.GetTorque()[:, np.newaxis]
-		force = J_robotjointbase@torque
-		torque_calculated = J_robotjointbase_inv@force
+	torques = J_robotframe.T@target_F
 
-		torque_str = f"Torque - ({round(torque[0, 0], 2)}, {round(torque[1, 0], 2)}, {round(torque[2, 0], 2)})"
-		force_str = f"Force - ({round(force[0, 0], 2)}, {round(force[1, 0], 2)}, {round(force[2, 0], 2)})"
-		torque_calculated_str = f"Force - ({round(torque_calculated[0, 0], 2)}, {round(torque_calculated[1, 0], 2)}, {round(torque_calculated[2, 0], 2)})"
+	print("Torque:", torques.ravel())
 
-		print(f"{torque_str}, {force_str}, {torque_calculated_str}")
+	# robot.ApplyTorque(torques.ravel())
+	robot.ApplyTorque(torques.ravel())
+
+	torque = state.GetTorque()[:, np.newaxis]
+	# force = J_robotjointbase@torque
+	# torque_calculated = J_robotjointbase_inv@force
+
+	torque_str = f"Torque - ({round(torque[0, 0], 2)}, {round(torque[1, 0], 2)}, {round(torque[2, 0], 2)})"
+		# force_str = f"Force - ({round(force[0, 0], 2)}, {round(force[1, 0], 2)}, {round(force[2, 0], 2)})"
+		# torque_calculated_str = f"Force - ({round(torque_calculated[0, 0], 2)}, {round(torque_calculated[1, 0], 2)}, {round(torque_calculated[2, 0], 2)})"
+
+	print(f"{torque_str}")
 
 
 	p.stepSimulation()

@@ -10,7 +10,7 @@ class Robot:
 		self.start_pos = start_pos
 		self.start_orientation = p.getQuaternionFromEuler(start_orientation)
 
-		self.robot = p.loadURDF(urdf_path, self.start_pos, self.start_orientation)
+		self.robot = p.loadURDF(urdf_path, self.start_pos, self.start_orientation, useFixedBase=False)
 		self.joint_dict = {}
 
 		num_joints = p.getNumJoints(self.robot)
@@ -34,6 +34,9 @@ class Robot:
 		self.joint_indices = self.joint_dict.keys()
 
 		self.R_robotframe_robotjointbase = get_rot_mat(0, -np.pi/2, 0)
+
+		for j in self.joint_indices:
+			p.setJointMotorControl2(self.robot, j, p.VELOCITY_CONTROL, force=0)
 
 
 	def MoveTo(self, x, y, z):
@@ -65,6 +68,13 @@ class Robot:
 		desired_pos_str = f"{round(t1*180/np.pi, 2), round(t2*180/np.pi, 2), round(t3*180/np.pi, 2)}"
 
 		# print(f"Requested Pos: {pos_str} - FK Pos: {pos_FK_str} - Desired Joint Pos {desired_pos_str}")
+
+
+	def ApplyTorque(self, torques):
+		p.setJointMotorControlArray(self.robot,
+									self.joint_indices,
+									p.TORQUE_CONTROL,
+									forces=torques)
 		
 
 	def MoveJoints(self, desired):
@@ -124,6 +134,22 @@ class Robot:
 		dz_dt1 = 0
 		dz_dt2 = l3*trig_solve('ss', q[1:]) - l3*trig_solve('cc', q[1:]) - l2*trig_solve('c', [q[1]])
 		dz_dt3 = - l3*trig_solve('cc', q[1:]) + l3*trig_solve('ss', q[1:])
+
+
+
+
+		dx_dt1 = 0
+		dx_dt2 = l3*np.cos(q[1] + q[2]) + l2*np.cos(q[1])
+		dx_dt3 = l3*np.cos(q[1] + q[2])
+
+		dy_dt1 = l3*np.cos(q[0])*np.cos(q[1] + q[2]) + l2*np.cos(q[0])*np.cos(q[1]) + l1*np.sin(q[0])
+		dy_dt2 = -l3*np.sin(q[0])*np.sin(q[1] + q[2]) - l2*np.sin(q[0])*np.sin(q[1]) + l1*np.sin(q[0])
+		dy_dt3 = -l3*np.sin(q[0])*np.sin(q[1] + q[2])
+
+		dz_dt1 = l3*np.sin(q[0])*np.cos(q[1] + q[2]) - l2*np.sin(q[0])*np.cos(q[1]) - l1*np.cos(q[0])
+		dz_dt2 = l3*np.cos(q[0])*np.sin(q[1] + q[2]) + l2*np.cos(q[0])*np.sin(q[1])
+		dz_dt3 = l3*np.cos(q[0])*np.sin(q[1] + q[2])
+
 
 		J_robotjointbase = np.array([
 						[dx_dt1, dx_dt2, dx_dt3],
